@@ -1,5 +1,9 @@
-package com.example.demo.entity.wcm;
+package com.example.demo.entity.wcm.domain;
 
+import com.example.demo.entity.wcm.domain.enumeration.UserRole;
+import com.example.demo.entity.wcm.domain.string.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -9,13 +13,14 @@ import java.io.Serializable;
 import java.time.Instant;
 
 @DynamicInsert
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "tb_user")
+@Table(name = TableName.USER)
 public class User extends Timestamped implements Serializable {
 
     @Id
@@ -23,9 +28,11 @@ public class User extends Timestamped implements Serializable {
     @Column(name = "user_id", nullable = false)
     private Long id;
 
+
     @Column(length = 200, unique = true)
     private String userEmail;
 
+    @JsonIgnore
     @Column(name = "user_password")
     private String userPassword;
 
@@ -37,7 +44,6 @@ public class User extends Timestamped implements Serializable {
 
     @Column(name = "user_tel")
     private String userTel;
-
     @Column(name = "user_description")
     private String userDescription;
 
@@ -50,10 +56,20 @@ public class User extends Timestamped implements Serializable {
     @ColumnDefault("false")
     private Boolean deletedUser;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dept_id")
+    private Dept dept;
+
     @ColumnDefault("false")
     private Boolean isAutoConfirm;
 
     String uuid;
 
     Instant resetDate;
+
+    @PrePersist
+    public void prePersist() {
+        this.deletedUser = (this.deletedUser == null) ? false : this.deletedUser;
+    }
+
 }

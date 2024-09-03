@@ -1,5 +1,7 @@
-package com.example.demo.entity.wcm;
+package com.example.demo.entity.wcm.domain;
 
+import com.example.demo.entity.wcm.domain.string.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,12 +9,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Entity
-@Table(name = "tb_company")
+@Table(name = TableName.COMPANY)
 public class Company extends Timestamped {
 
     @Id
@@ -52,4 +56,6 @@ public class Company extends Timestamped {
     @Column
     @ColumnDefault("false")
     private Boolean isDeleted;
+
+
 }

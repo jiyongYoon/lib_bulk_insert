@@ -1,4 +1,4 @@
-package com.example.demo.entity.wcm;
+package com.example.demo.entity.wcm.domain.enumeration;
 
 public enum ContractStepType {
 
