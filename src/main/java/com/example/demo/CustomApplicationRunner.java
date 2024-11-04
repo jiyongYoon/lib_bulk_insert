@@ -2,9 +2,14 @@ package com.example.demo;
 
 import com.example.demo.bulk.*;
 import com.example.demo.entity.wcm.domain.*;
+import com.example.demo.entity.wcm.domain.enumeration.ContractHistoryStatus;
 import com.example.demo.entity.wcm.domain.enumeration.ContractStatus;
 import com.example.demo.entity.wcm.domain.enumeration.ContractStepType;
+import com.example.demo.entity.wcm.domain.enumeration.OriginType;
 import com.example.demo.entity.wcm.domain.enumeration.ReviewOption;
+import com.example.demo.entity.wcm.domain.enumeration.ReviewStatus;
+import com.example.demo.entity.wcm.domain.enumeration.ReviewStepType;
+import com.example.demo.entity.wcm.domain.enumeration.ReviewType;
 import com.example.demo.entity.wcm.domain.enumeration.UserRole;
 import com.example.demo.entity.wcm.domain.util.WorkSpaceCodeGenerator;
 import com.example.demo.repository.wcm.*;
@@ -63,9 +68,12 @@ public class CustomApplicationRunner implements ApplicationRunner {
         saveTemplate();
         System.out.println("---------saveTemplate() finished!!---------");
 
-        List<Contract> contractList = new ArrayList<>();
-
         int dataCount = 1000000;
+
+        List<Contract> contractList = new ArrayList<>(dataCount);
+        List<ContractHistory> contractHistoryList = new ArrayList<>(dataCount);
+        List<ReviewerHistory> reviewerHistoryList = new ArrayList<>(dataCount);
+
         String contractSuffix = "_계약서";
 
         for (int i = 0; i < dataCount; i++) {
@@ -88,6 +96,37 @@ public class CustomApplicationRunner implements ApplicationRunner {
 
         bulkInsert.bulkInsertContractList(
                 contractList, savedTemplateContractEntity, userList, savedCompanyEntity);
+
+        for (int i = 0; i < dataCount; i++) {
+            ContractHistory contractHistory = ContractHistory.builder()
+                .historyVersion("1")
+                .historyStatus(ContractHistoryStatus.HISTORY)
+                .isDeleted(false)
+                .isLatest(true)
+                .currentStepOrder(1)
+                .totalStepOrder(1)
+                .currentReviewOrder(1)
+                .build();
+            contractHistoryList.add(contractHistory);
+        }
+
+        bulkInsert.bulkInsertContractHistoryList(contractHistoryList);
+
+        for (int i = 0; i < dataCount; i++) {
+            ReviewerHistory reviewerHistory = ReviewerHistory.builder()
+                .isChecked(RandomBoolUtils.getRandomBool())
+                .checkedTime(RandomInstantUtils.getRandomInstant("2023-01-01", "2024-09-03"))
+                .reviewComment(RandomStringUtils.generateRandomString(20))
+                .originType(OriginType.CONTRACT)
+                .reviewStepType(ReviewStepType.REVIEW)
+                .reviewStatus(RandomEnumUtils.getRandomEnum(ReviewStatus.class))
+                .reviewType(ReviewType.USER)
+                .stepOrder(1)
+                .reviewOrder(1)
+                .build();
+            reviewerHistoryList.add(reviewerHistory);
+        }
+        bulkInsert.bulkInsertReviewHistoryList(reviewerHistoryList);
 
         System.out.printf("insert finished!! workspace code1: %s, workspace code2: %s, workspace code3: %s%n, " +
                         "adminId: %s, adminPassword: %s%n" +

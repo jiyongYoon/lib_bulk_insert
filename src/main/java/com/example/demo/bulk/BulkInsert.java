@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 @Repository
 @RequiredArgsConstructor
@@ -23,6 +22,119 @@ public class BulkInsert {
     private final int batchSize = 1000;
 
     private int batchCount;
+
+    public void bulkInsertReviewHistoryList(List<ReviewerHistory> reviewerHistoryList) {
+        batchCount = 0;
+        List<ReviewerHistory> items = new ArrayList<>();
+        for (int i = 0; i < reviewerHistoryList.size(); i++) {
+            items.add(reviewerHistoryList.get(i));
+            if ((i + 1) % batchSize == 0) {
+                batchCount = batchInsertReviewerHistory(items);
+            }
+        }
+        if (!items.isEmpty()) {
+            batchCount = batchInsertReviewerHistory(items);
+        }
+        System.out.println("batchCount = " + batchCount);
+    }
+
+    private int batchInsertReviewerHistory(List<ReviewerHistory> reviewerHistoryList) {
+        jdbcTemplate.batchUpdate("INSERT INTO " + TableName.REVIEWER_HISTORY + "(" +
+                "user_id, " +
+                "contract_history_id, " +
+                "is_checked, " +
+                "checked_time, " +
+                "review_comment, " +
+                "origin_type, " +
+                "review_step_type, " +
+                "review_status, " +
+                "review_type, " +
+                "step_order, " +
+                "review_order) " +
+                "VALUES " +
+                "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ReviewerHistory reviewerHistory = reviewerHistoryList.get(i);
+                    ps.setLong(1, RandomIntUtils.getRandomNaturalInt(4));
+                    ps.setLong(2, RandomIntUtils.getRandomNaturalInt(reviewerHistoryList.size()));
+                    ps.setBoolean(3, reviewerHistory.getIsChecked());
+                    ps.setTimestamp(4, Timestamp.from(reviewerHistory.getCheckedTime()));
+                    ps.setString(5, reviewerHistory.getReviewComment());
+                    ps.setString(6, reviewerHistory.getOriginType().toString());
+                    ps.setString(7, reviewerHistory.getReviewStepType().toString());
+                    ps.setString(8, reviewerHistory.getReviewStatus().toString());
+                    ps.setString(9, reviewerHistory.getReviewType().toString());
+                    ps.setInt(10, reviewerHistory.getStepOrder());
+                    ps.setInt(11, reviewerHistory.getReviewOrder());
+                }
+
+                @Override
+                public int getBatchSize() {
+                    return reviewerHistoryList.size();
+                }
+            }
+        );
+        reviewerHistoryList.clear();
+        batchCount++;
+        System.out.println("insert count: " + batchCount);
+        return batchCount;
+    }
+
+    public void bulkInsertContractHistoryList(List<ContractHistory> contractHistoryList) {
+        batchCount = 0;
+        List<ContractHistory> items = new ArrayList<>();
+        for (int i = 0; i < contractHistoryList.size(); i++) {
+            items.add(contractHistoryList.get(i));
+            if ((i + 1) % batchSize == 0) {
+                batchCount = batchInsertContractHistory(items);
+            }
+        }
+        if (!items.isEmpty()) {
+            batchCount = batchInsertContractHistory(items);
+        }
+        System.out.println("batchCount = " + batchCount);
+    }
+
+    private int batchInsertContractHistory(List<ContractHistory> contractHistoryList) {
+        jdbcTemplate.batchUpdate("INSERT INTO " + TableName.CONTRACT_HISTORY + "(" +
+                "contract_id, " +
+                "history_version, " +
+                "history_status, " +
+                "is_deleted, " +
+                "is_latest, " +
+                "current_step_order, " +
+                "total_step_order, " +
+                "current_review_order)" +
+                "VALUES " +
+                "(?, ?, ?, ?, ?, ?, ?, ?)",
+            new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ContractHistory contractHistory = contractHistoryList.get(i);
+                    ps.setLong(1, i + 1);
+                    ps.setString(2, contractHistory.getHistoryVersion());
+                    ps.setString(3, contractHistory.getHistoryStatus().name());
+                    ps.setBoolean(4, contractHistory.getIsDeleted());
+                    ps.setBoolean(5, contractHistory.getIsLatest());
+                    ps.setInt(6, contractHistory.getCurrentStepOrder());
+                    ps.setInt(7, contractHistory.getTotalStepOrder());
+                    ps.setInt(8, contractHistory.getCurrentReviewOrder());
+                }
+
+                @Override
+                public int getBatchSize() {
+                    return contractHistoryList.size();
+                }
+            }
+        );
+        contractHistoryList.clear();
+        batchCount++;
+        System.out.println("insert count: " + batchCount);
+        return batchCount;
+    }
+
 
     public void bulkInsertContractList(List<Contract> contractList,
                                        TemplateContract templateContract,

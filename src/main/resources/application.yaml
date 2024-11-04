@@ -3,11 +3,11 @@ spring:
     name: demo
   datasource:
     driver-class-name: org.postgresql.Driver
-#    url: jdbc:postgresql://localhost:5432/bulk_insert_test
-    url: jdbc:postgresql://localhost:10011/bulk_insert_test
+    url: jdbc:postgresql://localhost:5432/bulk_insert_test
+#    url: jdbc:postgresql://localhost:10011/bulk_insert_test
     username: postgres
     password: postgres
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     show-sql: true
